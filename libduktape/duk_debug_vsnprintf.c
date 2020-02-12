@@ -11,7 +11,9 @@
  *     %!T    tagged value (duk_tval *)
  *     %!O    heap object (duk_heaphdr *)
  *     %!I    decoded bytecode instruction
- *     %!C    bytecode instruction opcode name (arg is long)
+ *     %!X    bytecode instruction opcode name (arg is long)
+ *     %!C    catcher (duk_catcher *)
+ *     %!A    activation (duk_activation *)
  *
  *  Everything is serialized in a JSON-like manner.  The default depth is one
  *  level, internal prototype is not followed, and internal properties are not
@@ -35,7 +37,7 @@
  *      (excluding the null terminator).  If retval == buffer size,
  *      output was truncated (except for corner cases).
  *
- *    * Output format is intentionally different from Ecmascript
+ *    * Output format is intentionally different from ECMAScript
  *      formatting requirements, as formatting here serves debugging
  *      of internals.
  *
@@ -815,13 +817,54 @@ DUK_LOCAL void duk__print_opcode(duk__dprint_state *st, duk_small_int_t opcode) 
 	}
 }
 
+DUK_LOCAL void duk__print_catcher(duk__dprint_state *st, duk_catcher *cat) {
+	duk_fixedbuffer *fb = st->fb;
+
+	if (duk_fb_is_full(fb)) {
+		return;
+	}
+
+	if (!cat) {
+		duk_fb_put_cstring(fb, "NULL");
+		return;
+	}
+
+	duk_fb_sprintf(fb, "[catcher ptr=%p parent=%p varname=%p pc_base=%p, idx_base=%ld, flags=0x%08lx]",
+	               (void *) cat,
+	               (void *) cat->parent, (void *) cat->h_varname, (void *) cat->pc_base,
+		       (long) cat->idx_base, (unsigned long) cat->flags);
+}
+
+
+DUK_LOCAL void duk__print_activation(duk__dprint_state *st, duk_activation *act) {
+	duk_fixedbuffer *fb = st->fb;
+
+	if (duk_fb_is_full(fb)) {
+		return;
+	}
+
+	if (!act) {
+		duk_fb_put_cstring(fb, "NULL");
+		return;
+	}
+
+	/* prev_caller: conditional, omitted on purpose, it's rarely used. */
+	/* prev_line: conditional, omitted on purpose (but would be nice). */
+	duk_fb_sprintf(fb, "[activation ptr=%p tv_func=<omit> func=%p parent=%p var_env=%p lex_env=%p cat=%p curr_pc=%p bottom_byteoff=%ld retval_byteoff=%ld reserve_byteoff=%ld flags=%ld]",
+	               (void *) act,
+	               (void *) act->func, (void *) act->parent, (void *) act->var_env,
+		       (void *) act->lex_env, (void *) act->cat, (void *) act->curr_pc,
+		       (long) act->bottom_byteoff, (long) act->retval_byteoff, (long) act->reserve_byteoff,
+		       (long) act->flags);
+}
+
 DUK_INTERNAL duk_int_t duk_debug_vsnprintf(char *str, duk_size_t size, const char *format, va_list ap) {
 	duk_fixedbuffer fb;
 	const char *p = format;
 	const char *p_end = p + DUK_STRLEN(format);
 	duk_int_t retval;
 
-	DUK_MEMZERO(&fb, sizeof(fb));
+	duk_memzero(&fb, sizeof(fb));
 	fb.buffer = (duk_uint8_t *) str;
 	fb.length = size;
 	fb.offset = 0;
@@ -846,7 +889,7 @@ DUK_INTERNAL duk_int_t duk_debug_vsnprintf(char *str, duk_size_t size, const cha
 		 *  understand.  See man 3 printf.
 		 */
 
-		DUK_MEMZERO(&st, sizeof(st));
+		duk_memzero(&st, sizeof(st));
 		st.fb = &fb;
 		st.depth = 0;
 		st.depth_limit = 1;
@@ -899,9 +942,17 @@ DUK_INTERNAL duk_int_t duk_debug_vsnprintf(char *str, duk_size_t size, const cha
 				duk_instr_t t = va_arg(ap, duk_instr_t);
 				duk__print_instr(&st, t);
 				break;
-			} else if (got_exclamation && ch == DUK_ASC_UC_C) {
+			} else if (got_exclamation && ch == DUK_ASC_UC_X) {
 				long t = va_arg(ap, long);
 				duk__print_opcode(&st, (duk_small_int_t) t);
+				break;
+			} else if (got_exclamation && ch == DUK_ASC_UC_C) {
+				duk_catcher *t = va_arg(ap, duk_catcher *);
+				duk__print_catcher(&st, t);
+				break;
+			} else if (got_exclamation && ch == DUK_ASC_UC_A) {
+				duk_activation *t = va_arg(ap, duk_activation *);
+				duk__print_activation(&st, t);
 				break;
 			} else if (!got_exclamation && strchr(DUK__ALLOWED_STANDARD_SPECIFIERS, (int) ch)) {
 				char fmtbuf[DUK__MAX_FORMAT_TAG_LENGTH];
@@ -913,8 +964,8 @@ DUK_INTERNAL duk_int_t duk_debug_vsnprintf(char *str, duk_size_t size, const cha
 					/* format is too large, abort */
 					goto format_error;
 				}
-				DUK_MEMZERO(fmtbuf, sizeof(fmtbuf));
-				DUK_MEMCPY(fmtbuf, p_begfmt, fmtlen);
+				duk_memzero(fmtbuf, sizeof(fmtbuf));
+				duk_memcpy(fmtbuf, p_begfmt, fmtlen);
 
 				/* assume exactly 1 arg, which is why '*' is forbidden; arg size still
 				 * depends on type though.
@@ -1019,7 +1070,8 @@ DUK_INTERNAL void duk_debug_format_funcptr(char *buf, duk_size_t buf_size, duk_u
 	duk_uint8_t *p = (duk_uint8_t *) buf;
 	duk_uint8_t *p_end = (duk_uint8_t *) (buf + buf_size - 1);
 
-	DUK_MEMZERO(buf, buf_size);
+	DUK_ASSERT(buf != NULL);
+	duk_memzero(buf, buf_size);
 
 	for (i = 0; i < fptr_size; i++) {
 		duk_int_t left = (duk_int_t) (p_end - p);

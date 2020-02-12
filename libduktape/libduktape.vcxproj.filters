@@ -1,429 +1,158 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Pliki źródłowe">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Pliki nagłówkowe">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
-    <Filter Include="Pliki zasobów">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="dllmain.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_alloc_default.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_api_buffer.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_api_bytecode.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_api_call.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_api_codec.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_api_compile.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_api_debug.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_api_heap.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_api_inspect.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_api_memory.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_api_object.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_api_stack.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_api_string.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_api_time.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_bi_array.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_bi_boolean.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_bi_buffer.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_bi_date.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_bi_date_unix.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_bi_date_windows.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_bi_duktape.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_bi_encoding.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_bi_error.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_bi_function.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_bi_global.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_bi_json.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_bi_math.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_bi_number.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_bi_object.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_bi_performance.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_bi_pointer.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_bi_promise.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_bi_proxy.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_bi_reflect.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_bi_regexp.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_bi_string.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_bi_symbol.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_bi_thread.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_bi_thrower.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_builtins.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_debug_fixedbuffer.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_debug_macros.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_debug_vsnprintf.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_debugger.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_error_augment.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_error_longjmp.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_error_macros.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_error_misc.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_error_throw.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_hbuffer_alloc.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_hbuffer_ops.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_hbufobj_misc.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_heap_alloc.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_heap_finalize.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_heap_hashstring.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_heap_markandsweep.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_heap_memory.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_heap_misc.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_heap_refcount.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_heap_stringcache.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_heap_stringtable.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_hobject_alloc.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_hobject_class.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_hobject_enum.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_hobject_misc.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_hobject_pc2line.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_hobject_props.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_hstring_misc.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_hthread_alloc.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_hthread_builtins.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_hthread_misc.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_hthread_stacks.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_js_arith.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_js_call.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_js_compiler.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_js_executor.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_js_ops.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_js_var.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_lexer.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_numconv.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_regexp_compiler.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_regexp_executor.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_replacements.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_selftest.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_tval.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_unicode_support.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_unicode_tables.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_util_bitdecoder.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_util_bitencoder.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_util_bufwriter.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_util_hashbytes.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_util_misc.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="duk_util_tinyrandom.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="duk_api_internal.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_bi_protos.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_builtins.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_config.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_dblunion.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_debug.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_debugger.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_error.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_exception.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_forwdecl.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_harray.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_hboundfunc.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_hbuffer.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_hbufobj.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_hcompfunc.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_heap.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_heaphdr.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_henv.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_hnatfunc.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_hobject.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_hproxy.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_hstring.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_hthread.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_internal.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_jmpbuf.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_js.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_js_bytecode.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_js_compiler.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_json.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_lexer.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_numconv.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_refcount.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_regexp.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_replacements.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_selftest.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_strings.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_tval.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_unicode.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duk_util.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="duktape.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="AUTHORS.rst" />
+    <None Include="duk_source_meta.json" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="LICENSE.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="duk_config.h" />
+    <ClInclude Include="duktape.h" />
+    <ClInclude Include="duk_tval.h" />
+    <ClInclude Include="duk_unicode.h" />
+    <ClInclude Include="duk_util.h" />
+    <ClInclude Include="duk_strings.h" />
+    <ClInclude Include="duk_dblunion.h" />
+    <ClInclude Include="duk_debug.h" />
+    <ClInclude Include="duk_debugger.h" />
+    <ClInclude Include="duk_error.h" />
+    <ClInclude Include="duk_exception.h" />
+    <ClInclude Include="duk_fltunion.h" />
+    <ClInclude Include="duk_forwdecl.h" />
+    <ClInclude Include="duk_harray.h" />
+    <ClInclude Include="duk_hboundfunc.h" />
+    <ClInclude Include="duk_hbuffer.h" />
+    <ClInclude Include="duk_hbufobj.h" />
+    <ClInclude Include="duk_hcompfunc.h" />
+    <ClInclude Include="duk_heap.h" />
+    <ClInclude Include="duk_heaphdr.h" />
+    <ClInclude Include="duk_henv.h" />
+    <ClInclude Include="duk_hnatfunc.h" />
+    <ClInclude Include="duk_hobject.h" />
+    <ClInclude Include="duk_hproxy.h" />
+    <ClInclude Include="duk_hstring.h" />
+    <ClInclude Include="duk_hthread.h" />
+    <ClInclude Include="duk_internal.h" />
+    <ClInclude Include="duk_jmpbuf.h" />
+    <ClInclude Include="duk_js.h" />
+    <ClInclude Include="duk_js_bytecode.h" />
+    <ClInclude Include="duk_js_compiler.h" />
+    <ClInclude Include="duk_json.h" />
+    <ClInclude Include="duk_lexer.h" />
+    <ClInclude Include="duk_numconv.h" />
+    <ClInclude Include="duk_refcount.h" />
+    <ClInclude Include="duk_regexp.h" />
+    <ClInclude Include="duk_replacements.h" />
+    <ClInclude Include="duk_selftest.h" />
+    <ClInclude Include="duk_api_internal.h" />
+    <ClInclude Include="duk_bi_protos.h" />
+    <ClInclude Include="duk_builtins.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="duk_util_tinyrandom.c" />
+    <ClCompile Include="duk_tval.c" />
+    <ClCompile Include="duk_unicode_support.c" />
+    <ClCompile Include="duk_unicode_tables.c" />
+    <ClCompile Include="duk_util_bitdecoder.c" />
+    <ClCompile Include="duk_util_bitencoder.c" />
+    <ClCompile Include="duk_util_bufwriter.c" />
+    <ClCompile Include="duk_util_cast.c" />
+    <ClCompile Include="duk_util_double.c" />
+    <ClCompile Include="duk_util_hashbytes.c" />
+    <ClCompile Include="duk_util_memory.c" />
+    <ClCompile Include="duk_util_memrw.c" />
+    <ClCompile Include="duk_util_misc.c" />
+    <ClCompile Include="duk_debug_fixedbuffer.c" />
+    <ClCompile Include="duk_debug_macros.c" />
+    <ClCompile Include="duk_debug_vsnprintf.c" />
+    <ClCompile Include="duk_debugger.c" />
+    <ClCompile Include="duk_error_augment.c" />
+    <ClCompile Include="duk_error_longjmp.c" />
+    <ClCompile Include="duk_error_macros.c" />
+    <ClCompile Include="duk_error_misc.c" />
+    <ClCompile Include="duk_error_throw.c" />
+    <ClCompile Include="duk_hbuffer_alloc.c" />
+    <ClCompile Include="duk_hbuffer_assert.c" />
+    <ClCompile Include="duk_hbuffer_ops.c" />
+    <ClCompile Include="duk_hbufobj_misc.c" />
+    <ClCompile Include="duk_heap_alloc.c" />
+    <ClCompile Include="duk_heap_finalize.c" />
+    <ClCompile Include="duk_heap_hashstring.c" />
+    <ClCompile Include="duk_heap_markandsweep.c" />
+    <ClCompile Include="duk_heap_memory.c" />
+    <ClCompile Include="duk_heap_misc.c" />
+    <ClCompile Include="duk_heap_refcount.c" />
+    <ClCompile Include="duk_heap_stringcache.c" />
+    <ClCompile Include="duk_heap_stringtable.c" />
+    <ClCompile Include="duk_heaphdr_assert.c" />
+    <ClCompile Include="duk_hobject_alloc.c" />
+    <ClCompile Include="duk_hobject_assert.c" />
+    <ClCompile Include="duk_hobject_class.c" />
+    <ClCompile Include="duk_hobject_enum.c" />
+    <ClCompile Include="duk_hobject_misc.c" />
+    <ClCompile Include="duk_hobject_pc2line.c" />
+    <ClCompile Include="duk_hobject_props.c" />
+    <ClCompile Include="duk_hstring_assert.c" />
+    <ClCompile Include="duk_hstring_misc.c" />
+    <ClCompile Include="duk_hthread_alloc.c" />
+    <ClCompile Include="duk_hthread_builtins.c" />
+    <ClCompile Include="duk_hthread_misc.c" />
+    <ClCompile Include="duk_hthread_stacks.c" />
+    <ClCompile Include="duk_js_arith.c" />
+    <ClCompile Include="duk_js_call.c" />
+    <ClCompile Include="duk_js_compiler.c" />
+    <ClCompile Include="duk_js_executor.c" />
+    <ClCompile Include="duk_js_ops.c" />
+    <ClCompile Include="duk_js_var.c" />
+    <ClCompile Include="duk_lexer.c" />
+    <ClCompile Include="duk_numconv.c" />
+    <ClCompile Include="duk_regexp_compiler.c" />
+    <ClCompile Include="duk_regexp_executor.c" />
+    <ClCompile Include="duk_replacements.c" />
+    <ClCompile Include="duk_selftest.c" />
+    <ClCompile Include="duk_alloc_default.c" />
+    <ClCompile Include="duk_api_buffer.c" />
+    <ClCompile Include="duk_api_bytecode.c" />
+    <ClCompile Include="duk_api_call.c" />
+    <ClCompile Include="duk_api_codec.c" />
+    <ClCompile Include="duk_api_compile.c" />
+    <ClCompile Include="duk_api_debug.c" />
+    <ClCompile Include="duk_api_heap.c" />
+    <ClCompile Include="duk_api_inspect.c" />
+    <ClCompile Include="duk_api_memory.c" />
+    <ClCompile Include="duk_api_object.c" />
+    <ClCompile Include="duk_api_random.c" />
+    <ClCompile Include="duk_api_stack.c" />
+    <ClCompile Include="duk_api_string.c" />
+    <ClCompile Include="duk_api_time.c" />
+    <ClCompile Include="duk_bi_array.c" />
+    <ClCompile Include="duk_bi_boolean.c" />
+    <ClCompile Include="duk_bi_buffer.c" />
+    <ClCompile Include="duk_bi_cbor.c" />
+    <ClCompile Include="duk_bi_date.c" />
+    <ClCompile Include="duk_bi_date_unix.c" />
+    <ClCompile Include="duk_bi_date_windows.c" />
+    <ClCompile Include="duk_bi_duktape.c" />
+    <ClCompile Include="duk_bi_encoding.c" />
+    <ClCompile Include="duk_bi_error.c" />
+    <ClCompile Include="duk_bi_function.c" />
+    <ClCompile Include="duk_bi_global.c" />
+    <ClCompile Include="duk_bi_json.c" />
+    <ClCompile Include="duk_bi_math.c" />
+    <ClCompile Include="duk_bi_number.c" />
+    <ClCompile Include="duk_bi_object.c" />
+    <ClCompile Include="duk_bi_performance.c" />
+    <ClCompile Include="duk_bi_pointer.c" />
+    <ClCompile Include="duk_bi_promise.c" />
+    <ClCompile Include="duk_bi_proxy.c" />
+    <ClCompile Include="duk_bi_reflect.c" />
+    <ClCompile Include="duk_bi_regexp.c" />
+    <ClCompile Include="duk_bi_string.c" />
+    <ClCompile Include="duk_bi_symbol.c" />
+    <ClCompile Include="duk_bi_thread.c" />
+    <ClCompile Include="duk_bi_thrower.c" />
+    <ClCompile Include="duk_builtins.c" />
   </ItemGroup>
 </Project>

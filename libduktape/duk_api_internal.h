@@ -6,7 +6,27 @@
 #if !defined(DUK_API_INTERNAL_H_INCLUDED)
 #define DUK_API_INTERNAL_H_INCLUDED
 
-#define DUK_INTERNAL_SYMBOL(x)     ("\x82" x)
+/* Inline macro helpers. */
+#if defined(DUK_USE_PREFER_SIZE)
+#define DUK_INLINE_PERF
+#define DUK_ALWAYS_INLINE_PERF
+#define DUK_NOINLINE_PERF
+#else
+#define DUK_INLINE_PERF DUK_INLINE
+#define DUK_ALWAYS_INLINE_PERF DUK_ALWAYS_INLINE
+#define DUK_NOINLINE_PERF DUK_NOINLINE
+#endif
+
+/* Inline macro helpers, for bytecode executor. */
+#if defined(DUK_USE_EXEC_PREFER_SIZE)
+#define DUK_EXEC_INLINE_PERF
+#define DUK_EXEC_ALWAYS_INLINE_PERF
+#define DUK_EXEC_NOINLINE_PERF
+#else
+#define DUK_EXEC_INLINE_PERF DUK_INLINE
+#define DUK_EXEC_ALWAYS_INLINE_PERF DUK_ALWAYS_INLINE
+#define DUK_EXEC_NOINLINE_PERF DUK_NOINLINE
+#endif
 
 /* duk_push_sprintf constants */
 #define DUK_PUSH_SPRINTF_INITIAL_SIZE  256L
@@ -100,6 +120,8 @@ DUK_INTERNAL_DECL duk_bool_t duk_is_string_notsymbol(duk_hthread *thr, duk_idx_t
 
 DUK_INTERNAL_DECL duk_bool_t duk_is_callable_tval(duk_hthread *thr, duk_tval *tv);
 
+DUK_INTERNAL_DECL duk_bool_t duk_is_bare_object(duk_hthread *thr, duk_idx_t idx);
+
 DUK_INTERNAL_DECL duk_hstring *duk_get_hstring(duk_hthread *thr, duk_idx_t idx);
 DUK_INTERNAL_DECL duk_hstring *duk_get_hstring_notsymbol(duk_hthread *thr, duk_idx_t idx);
 DUK_INTERNAL_DECL const char *duk_get_string_notsymbol(duk_hthread *thr, duk_idx_t idx);
@@ -142,10 +164,12 @@ DUK_INTERNAL_DECL duk_hobject *duk_to_hobject(duk_hthread *thr, duk_idx_t idx);
 DUK_INTERNAL_DECL duk_double_t duk_to_number_m1(duk_hthread *thr);
 DUK_INTERNAL_DECL duk_double_t duk_to_number_m2(duk_hthread *thr);
 
+DUK_INTERNAL_DECL duk_bool_t duk_to_boolean_top_pop(duk_hthread *thr);
+
 #if defined(DUK_USE_DEBUGGER_SUPPORT)  /* only needed by debugger for now */
 DUK_INTERNAL_DECL duk_hstring *duk_safe_to_hstring(duk_hthread *thr, duk_idx_t idx);
 #endif
-DUK_INTERNAL_DECL void duk_push_class_string_tval(duk_hthread *thr, duk_tval *tv);
+DUK_INTERNAL_DECL void duk_push_class_string_tval(duk_hthread *thr, duk_tval *tv, duk_bool_t avoid_side_effects);
 
 DUK_INTERNAL_DECL duk_int_t duk_to_int_clamped_raw(duk_hthread *thr, duk_idx_t idx, duk_int_t minval, duk_int_t maxval, duk_bool_t *out_clamped);  /* out_clamped=NULL, RangeError if outside range */
 DUK_INTERNAL_DECL duk_int_t duk_to_int_clamped(duk_hthread *thr, duk_idx_t idx, duk_int_t minval, duk_int_t maxval);
@@ -224,6 +248,14 @@ DUK_INTERNAL_DECL duk_bool_t duk_get_prop_stridx_short_raw(duk_hthread *thr, duk
 	 duk_get_prop_stridx_short_raw((thr), (((duk_uint_t) (obj_idx)) << 16) + ((duk_uint_t) (stridx))))
 DUK_INTERNAL_DECL duk_bool_t duk_get_prop_stridx_boolean(duk_hthread *thr, duk_idx_t obj_idx, duk_small_uint_t stridx, duk_bool_t *out_has_prop);  /* [] -> [] */
 
+DUK_INTERNAL_DECL duk_bool_t duk_xget_owndataprop(duk_hthread *thr, duk_idx_t obj_idx);
+DUK_INTERNAL_DECL duk_bool_t duk_xget_owndataprop_stridx(duk_hthread *thr, duk_idx_t obj_idx, duk_small_uint_t stridx);
+DUK_INTERNAL_DECL duk_bool_t duk_xget_owndataprop_stridx_short_raw(duk_hthread *thr, duk_uint_t packed_args);
+#define duk_xget_owndataprop_stridx_short(thr,obj_idx,stridx) \
+	(DUK_ASSERT_EXPR((duk_int_t) (obj_idx) >= -0x8000L && (duk_int_t) (obj_idx) <= 0x7fffL), \
+	 DUK_ASSERT_EXPR((duk_int_t) (stridx) >= 0 && (duk_int_t) (stridx) <= 0xffffL), \
+	 duk_xget_owndataprop_stridx_short_raw((thr), (((duk_uint_t) (obj_idx)) << 16) + ((duk_uint_t) (stridx))))
+
 DUK_INTERNAL_DECL duk_bool_t duk_put_prop_stridx(duk_hthread *thr, duk_idx_t obj_idx, duk_small_uint_t stridx);     /* [val] -> [] */
 DUK_INTERNAL_DECL duk_bool_t duk_put_prop_stridx_short_raw(duk_hthread *thr, duk_uint_t packed_args);
 #define duk_put_prop_stridx_short(thr,obj_idx,stridx) \
@@ -283,14 +315,14 @@ DUK_INTERNAL_DECL void duk_xdef_prop_stridx_builtin(duk_hthread *thr, duk_idx_t 
 
 DUK_INTERNAL_DECL void duk_xdef_prop_stridx_thrower(duk_hthread *thr, duk_idx_t obj_idx, duk_small_uint_t stridx);  /* [] -> [] */
 
+DUK_INTERNAL_DECL duk_bool_t duk_get_method_stridx(duk_hthread *thr, duk_idx_t idx, duk_small_uint_t stridx);
+
 DUK_INTERNAL_DECL void duk_pack(duk_hthread *thr, duk_idx_t count);
 DUK_INTERNAL_DECL duk_idx_t duk_unpack_array_like(duk_hthread *thr, duk_idx_t idx);
 #if 0
 DUK_INTERNAL_DECL void duk_unpack(duk_hthread *thr);
 #endif
 
-DUK_INTERNAL_DECL void duk_require_constructor_call(duk_hthread *thr);
-DUK_INTERNAL_DECL void duk_require_constructable(duk_hthread *thr, duk_idx_t idx);
 DUK_INTERNAL_DECL void duk_push_symbol_descriptive_string(duk_hthread *thr, duk_hstring *h);
 
 DUK_INTERNAL_DECL void duk_resolve_nonbound_function(duk_hthread *thr);
@@ -318,6 +350,12 @@ DUK_INTERNAL_DECL void duk_insert_undefined_n(duk_hthread *thr, duk_idx_t idx, d
 DUK_INTERNAL_DECL void duk_concat_2(duk_hthread *thr);
 
 DUK_INTERNAL_DECL duk_int_t duk_pcall_method_flags(duk_hthread *thr, duk_idx_t nargs, duk_small_uint_t call_flags);
+
+#if defined(DUK_USE_SYMBOL_BUILTIN)
+DUK_INTERNAL_DECL void duk_to_primitive_ordinary(duk_hthread *thr, duk_idx_t idx, duk_int_t hint);
+#endif
+
+DUK_INTERNAL_DECL void duk_clear_prototype(duk_hthread *thr, duk_idx_t idx);
 
 /* Raw internal valstack access macros: access is unsafe so call site
  * must have a guarantee that the index is valid.  When that is the case,

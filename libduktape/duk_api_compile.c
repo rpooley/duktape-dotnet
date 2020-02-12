@@ -60,7 +60,7 @@ DUK_LOCAL duk_ret_t duk__do_compile(duk_hthread *thr, void *udata) {
 	duk_uint_t flags;
 	duk_hcompfunc *h_templ;
 
-	DUK_ASSERT_CTX_VALID(thr);
+	DUK_CTX_ASSERT_VALID(thr);
 	DUK_ASSERT(udata != NULL);
 
 	/* Note: strictness is not inherited from the current Duktape/C
@@ -89,6 +89,7 @@ DUK_LOCAL duk_ret_t duk__do_compile(duk_hthread *thr, void *udata) {
 		if ((flags & DUK_COMPILE_NOSOURCE) ||  /* args incorrect */
 		    (h_sourcecode == NULL)) {          /* e.g. duk_push_string_file_raw() pushed undefined */
 			DUK_ERROR_TYPE(thr, DUK_STR_NO_SOURCECODE);
+			DUK_WO_NORETURN(return 0;);
 		}
 		DUK_ASSERT(h_sourcecode != NULL);
 		comp_args->src_buffer = (const duk_uint8_t *) DUK_HSTRING_GET_DATA(h_sourcecode);

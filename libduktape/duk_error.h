@@ -20,8 +20,8 @@
  *  Error codes: defined in duktape.h
  *
  *  Error codes are used as a shorthand to throw exceptions from inside
- *  the implementation.  The appropriate Ecmascript object is constructed
- *  based on the code.  Ecmascript code throws objects directly.  The error
+ *  the implementation.  The appropriate ECMAScript object is constructed
+ *  based on the code.  ECMAScript code throws objects directly.  The error
  *  codes are defined in the public API header because they are also used
  *  by calling code.
  */
@@ -181,6 +181,10 @@
 #define DUK_ERROR_UNSUPPORTED(thr) do { \
 		DUK_ERROR((thr), DUK_ERR_ERROR, DUK_STR_UNSUPPORTED); \
 	} while (0)
+#define DUK_DCERROR_UNSUPPORTED(thr) do { \
+		DUK_ERROR_UNSUPPORTED((thr)); \
+		return 0; \
+	} while (0)
 #define DUK_ERROR_ERROR(thr,msg) do { \
 		duk_err_error((thr), DUK_FILE_MACRO, (duk_int_t) DUK_LINE_MACRO, (msg)); \
 	} while (0)
@@ -268,6 +272,10 @@
 	} while (0)
 #define DUK_ERROR_UNSUPPORTED(thr) do { \
 		duk_err_error((thr)); \
+	} while (0)
+#define DUK_DCERROR_UNSUPPORTED(thr) do { \
+		DUK_UNREF((thr)); \
+		return DUK_RET_ERROR; \
 	} while (0)
 #define DUK_ERROR_ERROR(thr,msg) do { \
 		duk_err_error((thr)); \
@@ -423,7 +431,7 @@
 
 #if defined(DUK_USE_ASSERTIONS)
 #define DUK_ASSERT_SET_GARBAGE(ptr,size) do { \
-		DUK_MEMSET((void *) (ptr), 0x5a, size); \
+		duk_memset_unsafe((void *) (ptr), 0x5a, size); \
 	} while (0)
 #else
 #define DUK_ASSERT_SET_GARBAGE(ptr,size) do {} while (0)

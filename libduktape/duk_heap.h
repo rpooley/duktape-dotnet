@@ -68,20 +68,17 @@
  */
 #define DUK_MS_FLAG_EMERGENCY                (1U << 0)
 
-/* Voluntary mark-and-sweep: triggered periodically. */
-#define DUK_MS_FLAG_VOLUNTARY                (1U << 1)
-
 /* Postpone rescue decisions for reachable objects with FINALIZED set.
  * Used during finalize_list processing to avoid incorrect rescue
  * decisions due to finalize_list being a reachability root.
  */
-#define DUK_MS_FLAG_POSTPONE_RESCUE          (1U << 2)
+#define DUK_MS_FLAG_POSTPONE_RESCUE          (1U << 1)
 
 /* Don't compact objects; needed during object property table resize
  * to prevent a recursive resize.  It would suffice to protect only the
  * current object being resized, but this is not yet implemented.
  */
-#define DUK_MS_FLAG_NO_OBJECT_COMPACTION     (1U << 3)
+#define DUK_MS_FLAG_NO_OBJECT_COMPACTION     (1U << 2)
 
 /*
  *  Thread switching
@@ -294,7 +291,7 @@ struct duk_breakpoint {
  *  Thus, string caches are now at the heap level now.
  */
 
-struct duk_strcache {
+struct duk_strcache_entry {
 	duk_hstring *h;
 	duk_uint32_t bidx;
 	duk_uint32_t cidx;
@@ -326,8 +323,24 @@ struct duk_ljstate {
 	} while (0)
 
 /*
+ *  Literal intern cache
+ */
+
+struct duk_litcache_entry {
+	const duk_uint8_t *addr;
+	duk_hstring *h;
+};
+
+/*
  *  Main heap structure
  */
+
+#if defined(DUK_USE_ASSERTIONS)
+DUK_INTERNAL_DECL void duk_heap_assert_valid(duk_heap *heap);
+#define DUK_HEAP_ASSERT_VALID(heap)  do { duk_heap_assert_valid((heap)); } while (0)
+#else
+#define DUK_HEAP_ASSERT_VALID(heap)  do {} while (0)
+#endif
 
 struct duk_heap {
 	duk_small_uint_t flags;
@@ -400,6 +413,11 @@ struct duk_heap {
 
 	/* Mark-and-sweep running flag.  Prevents re-entry, and also causes
 	 * refzero events to be ignored (= objects won't be queued to refzero_list).
+	 *
+	 * 0: mark-and-sweep not running
+	 * 1: mark-and-sweep is running
+	 * 2: heap destruction active or debugger active, prevent mark-and-sweep
+	 *    and refzero processing (but mark-and-sweep not itself running)
 	 */
 	duk_uint_t ms_running;
 
@@ -551,7 +569,15 @@ struct duk_heap {
 	/* String access cache (codepoint offset -> byte offset) for fast string
 	 * character looping; 'weak' reference which needs special handling in GC.
 	 */
-	duk_strcache strcache[DUK_HEAP_STRCACHE_SIZE];
+	duk_strcache_entry strcache[DUK_HEAP_STRCACHE_SIZE];
+
+#if defined(DUK_USE_LITCACHE_SIZE)
+	/* Literal intern cache.  When enabled, strings interned as literals
+	 * (e.g. duk_push_literal()) will be pinned and cached for the lifetime
+	 * of the heap.
+	 */
+	duk_litcache_entry litcache[DUK_USE_LITCACHE_SIZE];
+#endif
 
 	/* Built-in strings. */
 #if defined(DUK_USE_ROM_STRINGS)
@@ -583,6 +609,9 @@ struct duk_heap {
 	duk_int_t stats_strtab_resize_check;
 	duk_int_t stats_strtab_resize_grow;
 	duk_int_t stats_strtab_resize_shrink;
+	duk_int_t stats_strtab_litcache_hit;
+	duk_int_t stats_strtab_litcache_miss;
+	duk_int_t stats_strtab_litcache_pin;
 	duk_int_t stats_object_realloc_props;
 	duk_int_t stats_object_abandon_array;
 	duk_int_t stats_getownpropdesc_count;
@@ -607,6 +636,11 @@ struct duk_heap {
 	duk_int_t stats_putprop_proxy;
 	duk_int_t stats_getvar_all;
 	duk_int_t stats_putvar_all;
+	duk_int_t stats_envrec_delayedcreate;
+	duk_int_t stats_envrec_create;
+	duk_int_t stats_envrec_newenv;
+	duk_int_t stats_envrec_oldenv;
+	duk_int_t stats_envrec_pushclosure;
 #endif
 };
 
@@ -643,6 +677,9 @@ DUK_INTERNAL_DECL void duk_heap_switch_thread(duk_heap *heap, duk_hthread *new_t
 
 DUK_INTERNAL_DECL duk_hstring *duk_heap_strtable_intern(duk_heap *heap, const duk_uint8_t *str, duk_uint32_t blen);
 DUK_INTERNAL_DECL duk_hstring *duk_heap_strtable_intern_checked(duk_hthread *thr, const duk_uint8_t *str, duk_uint32_t len);
+#if defined(DUK_USE_LITCACHE_SIZE)
+DUK_INTERNAL_DECL duk_hstring *duk_heap_strtable_intern_literal_checked(duk_hthread *thr, const duk_uint8_t *str, duk_uint32_t blen);
+#endif
 DUK_INTERNAL_DECL duk_hstring *duk_heap_strtable_intern_u32(duk_heap *heap, duk_uint32_t val);
 DUK_INTERNAL_DECL duk_hstring *duk_heap_strtable_intern_u32_checked(duk_hthread *thr, duk_uint32_t val);
 #if defined(DUK_USE_REFERENCE_COUNTING)

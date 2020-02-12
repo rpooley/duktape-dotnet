@@ -53,7 +53,7 @@ DUK_LOCAL duk_idx_t duk__call_get_idx_func(duk_hthread *thr, duk_idx_t nargs, du
 	idx_func = duk_get_top(thr) - nargs - other;
 	if (DUK_UNLIKELY((idx_func | nargs) < 0)) {  /* idx_func < 0 || nargs < 0; OR sign bits */
 		DUK_ERROR_TYPE_INVALID_ARGS(thr);
-		/* unreachable */
+		DUK_WO_NORETURN(return 0;);
 	}
 	DUK_ASSERT(duk_is_valid_index(thr, idx_func));
 	return idx_func;
@@ -81,7 +81,7 @@ DUK_LOCAL duk_idx_t duk__call_get_idx_func_unvalidated(duk_hthread *thr, duk_idx
  * May currently throw an error e.g. when getting the property.
  */
 DUK_LOCAL void duk__call_prop_prep_stack(duk_hthread *thr, duk_idx_t normalized_obj_idx, duk_idx_t nargs) {
-	DUK_ASSERT_CTX_VALID(thr);
+	DUK_CTX_ASSERT_VALID(thr);
 	DUK_ASSERT(nargs >= 0);
 
 	DUK_DDD(DUK_DDDPRINT("duk__call_prop_prep_stack, normalized_obj_idx=%ld, nargs=%ld, stacktop=%ld",
@@ -97,18 +97,16 @@ DUK_LOCAL void duk__call_prop_prep_stack(duk_hthread *thr, duk_idx_t normalized_
 
 #if defined(DUK_USE_VERBOSE_ERRORS)
 	if (DUK_UNLIKELY(!duk_is_callable(thr, -1))) {
-		duk_tval *tv_targ;
 		duk_tval *tv_base;
 		duk_tval *tv_key;
 
-		tv_targ = DUK_GET_TVAL_NEGIDX(thr, -1);
+		/* tv_targ is passed on stack top (at index -1). */
 		tv_base = DUK_GET_TVAL_POSIDX(thr, normalized_obj_idx);
 		tv_key = DUK_GET_TVAL_NEGIDX(thr, -nargs - 2);
-		DUK_ASSERT(tv_targ >= thr->valstack_bottom && tv_targ < thr->valstack_top);
 		DUK_ASSERT(tv_base >= thr->valstack_bottom && tv_base < thr->valstack_top);
 		DUK_ASSERT(tv_key >= thr->valstack_bottom && tv_key < thr->valstack_top);
 
-		duk_call_setup_propcall_error(thr, tv_targ, tv_base, tv_key);
+		duk_call_setup_propcall_error(thr, tv_base, tv_key);
 	}
 #endif
 
@@ -165,6 +163,7 @@ DUK_EXTERNAL void duk_call_prop(duk_hthread *thr, duk_idx_t obj_idx, duk_idx_t n
 	obj_idx = duk_require_normalize_index(thr, obj_idx);  /* make absolute */
 	if (DUK_UNLIKELY(nargs < 0)) {
 		DUK_ERROR_TYPE_INVALID_ARGS(thr);
+		DUK_WO_NORETURN(return;);
 	}
 
 	duk__call_prop_prep_stack(thr, obj_idx, nargs);
@@ -177,7 +176,7 @@ DUK_LOCAL duk_ret_t duk__pcall_raw(duk_hthread *thr, void *udata) {
 	duk_idx_t idx_func;
 	duk_int_t ret;
 
-	DUK_ASSERT_CTX_VALID(thr);
+	DUK_CTX_ASSERT_VALID(thr);
 	DUK_ASSERT(udata != NULL);
 
 	args = (duk__pcall_args *) udata;
@@ -201,7 +200,7 @@ DUK_EXTERNAL duk_int_t duk_pcall(duk_hthread *thr, duk_idx_t nargs) {
 	args.nargs = nargs;
 	if (DUK_UNLIKELY(nargs < 0)) {
 		DUK_ERROR_TYPE_INVALID_ARGS(thr);
-		return DUK_EXEC_ERROR;  /* unreachable */
+		DUK_WO_NORETURN(return DUK_EXEC_ERROR;);
 	}
 	args.call_flags = 0;
 
@@ -213,7 +212,7 @@ DUK_LOCAL duk_ret_t duk__pcall_method_raw(duk_hthread *thr, void *udata) {
 	duk_idx_t idx_func;
 	duk_int_t ret;
 
-	DUK_ASSERT_CTX_VALID(thr);
+	DUK_CTX_ASSERT_VALID(thr);
 	DUK_ASSERT(udata != NULL);
 
 	args = (duk__pcall_method_args *) udata;
@@ -236,7 +235,7 @@ DUK_INTERNAL duk_int_t duk_pcall_method_flags(duk_hthread *thr, duk_idx_t nargs,
 	args.nargs = nargs;
 	if (DUK_UNLIKELY(nargs < 0)) {
 		DUK_ERROR_TYPE_INVALID_ARGS(thr);
-		return DUK_EXEC_ERROR;  /* unreachable */
+		DUK_WO_NORETURN(return DUK_EXEC_ERROR;);
 	}
 	args.call_flags = call_flags;
 
@@ -254,7 +253,7 @@ DUK_LOCAL duk_ret_t duk__pcall_prop_raw(duk_hthread *thr, void *udata) {
 	duk_idx_t obj_idx;
 	duk_int_t ret;
 
-	DUK_ASSERT_CTX_VALID(thr);
+	DUK_CTX_ASSERT_VALID(thr);
 	DUK_ASSERT(udata != NULL);
 
 	args = (duk__pcall_prop_args *) udata;
@@ -277,7 +276,7 @@ DUK_EXTERNAL duk_int_t duk_pcall_prop(duk_hthread *thr, duk_idx_t obj_idx, duk_i
 	args.nargs = nargs;
 	if (DUK_UNLIKELY(nargs < 0)) {
 		DUK_ERROR_TYPE_INVALID_ARGS(thr);
-		return DUK_EXEC_ERROR;  /* unreachable */
+		DUK_WO_NORETURN(return DUK_EXEC_ERROR;);
 	}
 	args.call_flags = 0;
 
@@ -313,7 +312,7 @@ DUK_EXTERNAL duk_int_t duk_safe_call(duk_hthread *thr, duk_safe_call_function fu
 		                  (long) (thr->valstack_top - thr->valstack),
 		                  (long) nrets));
 		DUK_ERROR_TYPE_INVALID_ARGS(thr);
-		return DUK_EXEC_ERROR;  /* unreachable */
+		DUK_WO_NORETURN(return DUK_EXEC_ERROR;);
 	}
 
 	rc = duk_handle_safe_call(thr,           /* thread */
@@ -361,7 +360,7 @@ DUK_EXTERNAL duk_int_t duk_pnew(duk_hthread *thr, duk_idx_t nargs) {
 
 	if (DUK_UNLIKELY(nargs < 0)) {
 		DUK_ERROR_TYPE_INVALID_ARGS(thr);
-		return DUK_EXEC_ERROR;  /* unreachable */
+		DUK_WO_NORETURN(return DUK_EXEC_ERROR;);
 	}
 
 	rc = duk_safe_call(thr, duk__pnew_helper, (void *) &nargs /*udata*/, nargs + 1 /*nargs*/, 1 /*nrets*/);
@@ -380,14 +379,12 @@ DUK_EXTERNAL duk_bool_t duk_is_constructor_call(duk_hthread *thr) {
 	return 0;
 }
 
-/* XXX: Make this obsolete by adding a function flag for rejecting a
- * non-constructor call automatically?
- */
-DUK_INTERNAL void duk_require_constructor_call(duk_hthread *thr) {
+DUK_EXTERNAL void duk_require_constructor_call(duk_hthread *thr) {
 	DUK_ASSERT_API_ENTRY(thr);
 
 	if (!duk_is_constructor_call(thr)) {
 		DUK_ERROR_TYPE(thr, DUK_STR_CONSTRUCT_ONLY);
+		DUK_WO_NORETURN(return;);
 	}
 }
 
@@ -398,7 +395,7 @@ DUK_EXTERNAL duk_bool_t duk_is_strict_call(duk_hthread *thr) {
 	 * because all Duktape/C functions are considered strict,
 	 * and strict is also the default when nothing is running.
 	 * However, Duktape may call this function internally when
-	 * the current activation is an Ecmascript function, so
+	 * the current activation is an ECMAScript function, so
 	 * this cannot be replaced by a 'return 1' without fixing
 	 * the internal call sites.
 	 */
@@ -465,7 +462,7 @@ DUK_EXTERNAL duk_int_t duk_get_magic(duk_hthread *thr, duk_idx_t idx) {
 	/* fall through */
  type_error:
 	DUK_ERROR_TYPE(thr, DUK_STR_UNEXPECTED_TYPE);
-	return 0;
+	DUK_WO_NORETURN(return 0;);
 }
 
 DUK_EXTERNAL void duk_set_magic(duk_hthread *thr, duk_idx_t idx, duk_int_t magic) {
@@ -488,7 +485,7 @@ DUK_EXTERNAL void duk_set_magic(duk_hthread *thr, duk_idx_t idx, duk_int_t magic
 DUK_INTERNAL void duk_resolve_nonbound_function(duk_hthread *thr) {
 	duk_tval *tv;
 
-	DUK_ASSERT_HTHREAD_VALID(thr);
+	DUK_HTHREAD_ASSERT_VALID(thr);
 
 	tv = DUK_GET_TVAL_NEGIDX(thr, -1);
 	if (DUK_TVAL_IS_OBJECT(tv)) {
@@ -497,7 +494,7 @@ DUK_INTERNAL void duk_resolve_nonbound_function(duk_hthread *thr) {
 		h = DUK_TVAL_GET_OBJECT(tv);
 		DUK_ASSERT(h != NULL);
 		if (DUK_HOBJECT_HAS_BOUNDFUNC(h)) {
-			duk_push_tval(thr, &((duk_hboundfunc *) h)->target);
+			duk_push_tval(thr, &((duk_hboundfunc *) (void *) h)->target);
 			duk_replace(thr, -2);
 #if 0
 			DUK_TVAL_SET_TVAL(tv, &((duk_hboundfunc *) h)->target);

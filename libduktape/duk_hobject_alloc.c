@@ -34,7 +34,7 @@ DUK_LOCAL void duk__init_object_parts(duk_heap *heap, duk_uint_t hobject_flags, 
 	DUK_HEAPHDR_SET_PREV(heap, &obj->hdr, NULL);
 #endif
 #endif
-	DUK_ASSERT_HEAPHDR_LINKS(heap, &obj->hdr);
+	DUK_HEAPHDR_ASSERT_LINKS(heap, &obj->hdr);
 	DUK_HEAP_INSERT_INTO_HEAP_ALLOCATED(heap, &obj->hdr);
 
 	/* obj->props is intentionally left as NULL, and duk_hobject_props.c must deal
@@ -130,7 +130,7 @@ DUK_INTERNAL duk_hboundfunc *duk_hboundfunc_alloc(duk_heap *heap, duk_uint_t hob
 	if (!res) {
 		return NULL;
 	}
-	DUK_MEMZERO(res, sizeof(duk_hboundfunc));
+	duk_memzero(res, sizeof(duk_hboundfunc));
 
 	duk__init_object_parts(heap, hobject_flags, &res->obj);
 
@@ -154,7 +154,7 @@ DUK_INTERNAL duk_hbufobj *duk_hbufobj_alloc(duk_hthread *thr, duk_uint_t hobject
 	res->buf_prop = NULL;
 #endif
 
-	DUK_ASSERT_HBUFOBJ_VALID(res);
+	DUK_HBUFOBJ_ASSERT_VALID(res);
 	return res;
 }
 #endif  /* DUK_USE_BUFFEROBJECT_SUPPORT */
@@ -172,7 +172,7 @@ DUK_INTERNAL duk_hthread *duk_hthread_alloc_unchecked(duk_heap *heap, duk_uint_t
 	if (DUK_UNLIKELY(res == NULL)) {
 		return NULL;
 	}
-	DUK_MEMZERO(res, sizeof(duk_hthread));
+	duk_memzero(res, sizeof(duk_hthread));
 
 	duk__init_object_parts(heap, hobject_flags, &res->obj);
 
@@ -214,6 +214,7 @@ DUK_INTERNAL duk_hthread *duk_hthread_alloc(duk_hthread *thr, duk_uint_t hobject
 	res = duk_hthread_alloc_unchecked(thr->heap, hobject_flags);
 	if (res == NULL) {
 		DUK_ERROR_ALLOC_FAILED(thr);
+		DUK_WO_NORETURN(return NULL;);
 	}
 	return res;
 }

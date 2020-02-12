@@ -8,7 +8,7 @@
  *  Property handling
  *
  *  The API exposes only the most common property handling functions.
- *  The caller can invoke Ecmascript built-ins for full control (e.g.
+ *  The caller can invoke ECMAScript built-ins for full control (e.g.
  *  defineProperty, getOwnPropertyDescriptor).
  */
 
@@ -40,7 +40,7 @@ DUK_EXTERNAL duk_bool_t duk_get_prop_string(duk_hthread *thr, duk_idx_t obj_idx,
 	DUK_ASSERT(key != NULL);
 
 	obj_idx = duk_require_normalize_index(thr, obj_idx);
-	duk_push_string(thr, key);
+	(void) duk_push_string(thr, key);
 	return duk_get_prop(thr, obj_idx);
 }
 
@@ -49,9 +49,21 @@ DUK_EXTERNAL duk_bool_t duk_get_prop_lstring(duk_hthread *thr, duk_idx_t obj_idx
 	DUK_ASSERT(key != NULL);
 
 	obj_idx = duk_require_normalize_index(thr, obj_idx);
-	duk_push_lstring(thr, key, key_len);
+	(void) duk_push_lstring(thr, key, key_len);
 	return duk_get_prop(thr, obj_idx);
 }
+
+#if !defined(DUK_USE_PREFER_SIZE)
+DUK_EXTERNAL duk_bool_t duk_get_prop_literal_raw(duk_hthread *thr, duk_idx_t obj_idx, const char *key, duk_size_t key_len) {
+	DUK_ASSERT_API_ENTRY(thr);
+	DUK_ASSERT(key != NULL);
+	DUK_ASSERT(key[key_len] == (char) 0);
+
+	obj_idx = duk_require_normalize_index(thr, obj_idx);
+	(void) duk_push_literal_raw(thr, key, key_len);
+	return duk_get_prop(thr, obj_idx);
+}
+#endif
 
 DUK_EXTERNAL duk_bool_t duk_get_prop_index(duk_hthread *thr, duk_idx_t obj_idx, duk_uarridx_t arr_idx) {
 	DUK_ASSERT_API_ENTRY(thr);
@@ -65,7 +77,7 @@ DUK_EXTERNAL duk_bool_t duk_get_prop_heapptr(duk_hthread *thr, duk_idx_t obj_idx
 	DUK_ASSERT_API_ENTRY(thr);
 
 	obj_idx = duk_require_normalize_index(thr, obj_idx);
-	duk_push_heapptr(thr, ptr);  /* NULL -> 'undefined' */
+	(void) duk_push_heapptr(thr, ptr);  /* NULL -> 'undefined' */
 	return duk_get_prop(thr, obj_idx);
 }
 
@@ -74,7 +86,7 @@ DUK_INTERNAL duk_bool_t duk_get_prop_stridx(duk_hthread *thr, duk_idx_t obj_idx,
 	DUK_ASSERT_STRIDX_VALID(stridx);
 
 	obj_idx = duk_require_normalize_index(thr, obj_idx);
-	duk_push_hstring(thr, DUK_HTHREAD_GET_STRING(thr, stridx));
+	(void) duk_push_hstring(thr, DUK_HTHREAD_GET_STRING(thr, stridx));
 	return duk_get_prop(thr, obj_idx);
 }
 
@@ -93,10 +105,58 @@ DUK_INTERNAL duk_bool_t duk_get_prop_stridx_boolean(duk_hthread *thr, duk_idx_t 
 	if (out_has_prop) {
 		*out_has_prop = rc;
 	}
-	rc = duk_to_boolean(thr, -1);
-	DUK_ASSERT(rc == 0 || rc == 1);
-	duk_pop(thr);
-	return rc;
+	return duk_to_boolean_top_pop(thr);
+}
+
+/* This get variant is for internal use, it differs from standard
+ * duk_get_prop() in that:
+ *   - Object argument must be an object (primitive values not supported).
+ *   - Key argument must be a string (no coercion).
+ *   - Only own properties are checked (no inheritance).  Only "entry part"
+ *     properties are checked (not array index properties).
+ *   - Property must be a plain data property, not a getter.
+ *   - Proxy traps are not triggered.
+ */
+DUK_INTERNAL duk_bool_t duk_xget_owndataprop(duk_hthread *thr, duk_idx_t obj_idx) {
+	duk_hobject *h_obj;
+	duk_hstring *h_key;
+	duk_tval *tv_val;
+
+	DUK_ASSERT_API_ENTRY(thr);
+
+	/* Note: copying tv_obj and tv_key to locals to shield against a valstack
+	 * resize is not necessary for a property get right now.
+	 */
+
+	h_obj = duk_get_hobject(thr, obj_idx);
+	if (h_obj == NULL) {
+		return 0;
+	}
+	h_key = duk_require_hstring(thr, -1);
+
+	tv_val = duk_hobject_find_entry_tval_ptr(thr->heap, h_obj, h_key);
+	if (tv_val == NULL) {
+		return 0;
+	}
+
+	duk_push_tval(thr, tv_val);
+	duk_remove_m2(thr);  /* remove key */
+
+	return 1;
+}
+
+DUK_INTERNAL duk_bool_t duk_xget_owndataprop_stridx(duk_hthread *thr, duk_idx_t obj_idx, duk_small_uint_t stridx) {
+	DUK_ASSERT_API_ENTRY(thr);
+	DUK_ASSERT_STRIDX_VALID(stridx);
+
+	obj_idx = duk_require_normalize_index(thr, obj_idx);
+	(void) duk_push_hstring(thr, DUK_HTHREAD_GET_STRING(thr, stridx));
+	return duk_xget_owndataprop(thr, obj_idx);
+}
+
+DUK_INTERNAL duk_bool_t duk_xget_owndataprop_stridx_short_raw(duk_hthread *thr, duk_uint_t packed_args) {
+	return duk_xget_owndataprop_stridx(thr, (duk_idx_t) (duk_int16_t) (packed_args >> 16),
+	                                   (duk_small_uint_t) (packed_args & 0xffffUL));
 }
 
 DUK_LOCAL duk_bool_t duk__put_prop_shared(duk_hthread *thr, duk_idx_t obj_idx, duk_idx_t idx_key) {
@@ -156,6 +216,18 @@ DUK_EXTERNAL duk_bool_t duk_put_prop_lstring(duk_hthread *thr, duk_idx_t obj_idx
 	return duk__put_prop_shared(thr, obj_idx, -1);
 }
 
+#if !defined(DUK_USE_PREFER_SIZE)
+DUK_EXTERNAL duk_bool_t duk_put_prop_literal_raw(duk_hthread *thr, duk_idx_t obj_idx, const char *key, duk_size_t key_len) {
+	DUK_ASSERT_API_ENTRY(thr);
+	DUK_ASSERT(key != NULL);
+	DUK_ASSERT(key[key_len] == (char) 0);
+
+	obj_idx = duk_normalize_index(thr, obj_idx);
+	(void) duk_push_literal_raw(thr, key, key_len);
+	return duk__put_prop_shared(thr, obj_idx, -1);
+}
+#endif
+
 DUK_EXTERNAL duk_bool_t duk_put_prop_index(duk_hthread *thr, duk_idx_t obj_idx, duk_uarridx_t arr_idx) {
 	DUK_ASSERT_API_ENTRY(thr);
 
@@ -168,7 +240,7 @@ DUK_EXTERNAL duk_bool_t duk_put_prop_heapptr(duk_hthread *thr, duk_idx_t obj_idx
 	DUK_ASSERT_API_ENTRY(thr);
 
 	obj_idx = duk_require_normalize_index(thr, obj_idx);
-	duk_push_heapptr(thr, ptr);  /* NULL -> 'undefined' */
+	(void) duk_push_heapptr(thr, ptr);  /* NULL -> 'undefined' */
 	return duk__put_prop_shared(thr, obj_idx, -1);
 }
 
@@ -215,7 +287,7 @@ DUK_EXTERNAL duk_bool_t duk_del_prop_string(duk_hthread *thr, duk_idx_t obj_idx,
 	DUK_ASSERT(key != NULL);
 
 	obj_idx = duk_require_normalize_index(thr, obj_idx);
-	duk_push_string(thr, key);
+	(void) duk_push_string(thr, key);
 	return duk_del_prop(thr, obj_idx);
 }
 
@@ -224,9 +296,21 @@ DUK_EXTERNAL duk_bool_t duk_del_prop_lstring(duk_hthread *thr, duk_idx_t obj_idx
 	DUK_ASSERT(key != NULL);
 
 	obj_idx = duk_require_normalize_index(thr, obj_idx);
-	duk_push_lstring(thr, key, key_len);
+	(void) duk_push_lstring(thr, key, key_len);
 	return duk_del_prop(thr, obj_idx);
 }
+
+#if !defined(DUK_USE_PREFER_SIZE)
+DUK_EXTERNAL duk_bool_t duk_del_prop_literal_raw(duk_hthread *thr, duk_idx_t obj_idx, const char *key, duk_size_t key_len) {
+	DUK_ASSERT_API_ENTRY(thr);
+	DUK_ASSERT(key != NULL);
+	DUK_ASSERT(key[key_len] == (char) 0);
+
+	obj_idx = duk_require_normalize_index(thr, obj_idx);
+	(void) duk_push_literal_raw(thr, key, key_len);
+	return duk_del_prop(thr, obj_idx);
+}
+#endif
 
 DUK_EXTERNAL duk_bool_t duk_del_prop_index(duk_hthread *thr, duk_idx_t obj_idx, duk_uarridx_t arr_idx) {
 	DUK_ASSERT_API_ENTRY(thr);
@@ -240,7 +324,7 @@ DUK_EXTERNAL duk_bool_t duk_del_prop_heapptr(duk_hthread *thr, duk_idx_t obj_idx
 	DUK_ASSERT_API_ENTRY(thr);
 
 	obj_idx = duk_require_normalize_index(thr, obj_idx);
-	duk_push_heapptr(thr, ptr);  /* NULL -> 'undefined' */
+	(void) duk_push_heapptr(thr, ptr);  /* NULL -> 'undefined' */
 	return duk_del_prop(thr, obj_idx);
 }
 
@@ -286,7 +370,7 @@ DUK_EXTERNAL duk_bool_t duk_has_prop_string(duk_hthread *thr, duk_idx_t obj_idx,
 	DUK_ASSERT(key != NULL);
 
 	obj_idx = duk_require_normalize_index(thr, obj_idx);
-	duk_push_string(thr, key);
+	(void) duk_push_string(thr, key);
 	return duk_has_prop(thr, obj_idx);
 }
 
@@ -295,9 +379,21 @@ DUK_EXTERNAL duk_bool_t duk_has_prop_lstring(duk_hthread *thr, duk_idx_t obj_idx
 	DUK_ASSERT(key != NULL);
 
 	obj_idx = duk_require_normalize_index(thr, obj_idx);
-	duk_push_lstring(thr, key, key_len);
+	(void) duk_push_lstring(thr, key, key_len);
 	return duk_has_prop(thr, obj_idx);
 }
+
+#if !defined(DUK_USE_PREFER_SIZE)
+DUK_EXTERNAL duk_bool_t duk_has_prop_literal_raw(duk_hthread *thr, duk_idx_t obj_idx, const char *key, duk_size_t key_len) {
+	DUK_ASSERT_API_ENTRY(thr);
+	DUK_ASSERT(key != NULL);
+	DUK_ASSERT(key[key_len] == (char) 0);
+
+	obj_idx = duk_require_normalize_index(thr, obj_idx);
+	(void) duk_push_literal_raw(thr, key, key_len);
+	return duk_has_prop(thr, obj_idx);
+}
+#endif
 
 DUK_EXTERNAL duk_bool_t duk_has_prop_index(duk_hthread *thr, duk_idx_t obj_idx, duk_uarridx_t arr_idx) {
 	DUK_ASSERT_API_ENTRY(thr);
@@ -311,7 +407,7 @@ DUK_EXTERNAL duk_bool_t duk_has_prop_heapptr(duk_hthread *thr, duk_idx_t obj_idx
 	DUK_ASSERT_API_ENTRY(thr);
 
 	obj_idx = duk_require_normalize_index(thr, obj_idx);
-	duk_push_heapptr(thr, ptr);  /* NULL -> 'undefined' */
+	(void) duk_push_heapptr(thr, ptr);  /* NULL -> 'undefined' */
 	return duk_has_prop(thr, obj_idx);
 }
 
@@ -511,18 +607,15 @@ DUK_EXTERNAL void duk_def_prop(duk_hthread *thr, duk_idx_t obj_idx, duk_uint_t f
 
  fail_invalid_desc:
 	DUK_ERROR_TYPE(thr, DUK_STR_INVALID_DESCRIPTOR);
-	return;
+	DUK_WO_NORETURN(return;);
 
  fail_not_callable:
 	DUK_ERROR_TYPE(thr, DUK_STR_NOT_CALLABLE);
-	return;
+	DUK_WO_NORETURN(return;);
 }
 
 /*
  *  Object related
- *
- *  Note: seal() and freeze() are accessible through Ecmascript bindings,
- *  and are not exposed through the API.
  */
 
 DUK_EXTERNAL void duk_compact(duk_hthread *thr, duk_idx_t obj_idx) {
@@ -613,6 +706,7 @@ DUK_INTERNAL void duk_seal_freeze_raw(duk_hthread *thr, duk_idx_t obj_idx, duk_b
 
  fail_cannot_freeze:
 	DUK_ERROR_TYPE_INVALID_ARGS(thr);  /* XXX: proper error message */
+	DUK_WO_NORETURN(return;);
 }
 
 DUK_EXTERNAL void duk_seal(duk_hthread *thr, duk_idx_t obj_idx) {
@@ -696,6 +790,38 @@ DUK_EXTERNAL duk_bool_t duk_get_global_lstring(duk_hthread *thr, const char *key
 	return ret;
 }
 
+#if !defined(DUK_USE_PREFER_SIZE)
+DUK_EXTERNAL duk_bool_t duk_get_global_literal_raw(duk_hthread *thr, const char *key, duk_size_t key_len) {
+	duk_bool_t ret;
+
+	DUK_ASSERT_API_ENTRY(thr);
+	DUK_ASSERT(thr->builtins[DUK_BIDX_GLOBAL] != NULL);
+	DUK_ASSERT(key[key_len] == (char) 0);
+
+	/* XXX: direct implementation */
+
+	duk_push_hobject(thr, thr->builtins[DUK_BIDX_GLOBAL]);
+	ret = duk_get_prop_literal_raw(thr, -1, key, key_len);
+	duk_remove_m2(thr);
+	return ret;
+}
+#endif
+
+DUK_EXTERNAL duk_bool_t duk_get_global_heapptr(duk_hthread *thr, void *ptr) {
+	duk_bool_t ret;
+
+	DUK_ASSERT_API_ENTRY(thr);
+	DUK_ASSERT(thr->builtins[DUK_BIDX_GLOBAL] != NULL);
+
+	/* XXX: direct implementation */
+
+	duk_push_hobject(thr, thr->builtins[DUK_BIDX_GLOBAL]);
+	ret = duk_get_prop_heapptr(thr, -1, ptr);
+	duk_remove_m2(thr);
+	return ret;
+}
+
+
 DUK_EXTERNAL duk_bool_t duk_put_global_string(duk_hthread *thr, const char *key) {
 	duk_bool_t ret;
 
@@ -724,6 +850,56 @@ DUK_EXTERNAL duk_bool_t duk_put_global_lstring(duk_hthread *thr, const char *key
 	ret = duk_put_prop_lstring(thr, -2, key, key_len);  /* [ ... global val ] -> [ ... global ] */
 	duk_pop(thr);
 	return ret;
+}
+
+#if !defined(DUK_USE_PREFER_SIZE)
+DUK_EXTERNAL duk_bool_t duk_put_global_literal_raw(duk_hthread *thr, const char *key, duk_size_t key_len) {
+	duk_bool_t ret;
+
+	DUK_ASSERT_API_ENTRY(thr);
+	DUK_ASSERT(thr->builtins[DUK_BIDX_GLOBAL] != NULL);
+	DUK_ASSERT(key[key_len] == (char) 0);
+
+	/* XXX: direct implementation */
+
+	duk_push_hobject(thr, thr->builtins[DUK_BIDX_GLOBAL]);
+	duk_insert(thr, -2);
+	ret = duk_put_prop_literal_raw(thr, -2, key, key_len);  /* [ ... global val ] -> [ ... global ] */
+	duk_pop(thr);
+	return ret;
+}
+#endif
+
+DUK_EXTERNAL duk_bool_t duk_put_global_heapptr(duk_hthread *thr, void *ptr) {
+	duk_bool_t ret;
+
+	DUK_ASSERT_API_ENTRY(thr);
+	DUK_ASSERT(thr->builtins[DUK_BIDX_GLOBAL] != NULL);
+
+	/* XXX: direct implementation */
+
+	duk_push_hobject(thr, thr->builtins[DUK_BIDX_GLOBAL]);
+	duk_insert(thr, -2);
+	ret = duk_put_prop_heapptr(thr, -2, ptr);  /* [ ... global val ] -> [ ... global ] */
+	duk_pop(thr);
+	return ret;
+}
+
+/*
+ *  ES2015 GetMethod()
+ */
+
+DUK_INTERNAL duk_bool_t duk_get_method_stridx(duk_hthread *thr, duk_idx_t idx, duk_small_uint_t stridx) {
+	(void) duk_get_prop_stridx(thr, idx, stridx);
+	if (duk_is_null_or_undefined(thr, -1)) {
+		duk_pop_nodecref_unsafe(thr);
+		return 0;
+	}
+	if (!duk_is_callable(thr, -1)) {
+		DUK_ERROR_TYPE(thr, DUK_STR_NOT_CALLABLE);
+		DUK_WO_NORETURN(return 0;);
+	}
+	return 1;
 }
 
 /*
@@ -764,13 +940,44 @@ DUK_EXTERNAL void duk_set_prototype(duk_hthread *thr, duk_idx_t idx) {
 #if defined(DUK_USE_ROM_OBJECTS)
 	if (DUK_HEAPHDR_HAS_READONLY((duk_heaphdr *) obj)) {
 		DUK_ERROR_TYPE(thr, DUK_STR_NOT_CONFIGURABLE);  /* XXX: "read only object"? */
-		return;
+		DUK_WO_NORETURN(return;);
 	}
 #endif
 
 	DUK_HOBJECT_SET_PROTOTYPE_UPDREF(thr, obj, proto);
 
 	duk_pop(thr);
+}
+
+DUK_INTERNAL void duk_clear_prototype(duk_hthread *thr, duk_idx_t idx) {
+	duk_hobject *obj;
+
+	DUK_ASSERT_API_ENTRY(thr);
+
+	obj = duk_require_hobject(thr, idx);
+	DUK_ASSERT(obj != NULL);
+
+#if defined(DUK_USE_ROM_OBJECTS)
+	if (DUK_HEAPHDR_HAS_READONLY((duk_heaphdr *) obj)) {
+		DUK_ERROR_TYPE(thr, DUK_STR_NOT_CONFIGURABLE);  /* XXX: "read only object"? */
+		DUK_WO_NORETURN(return;);
+	}
+#endif
+
+	DUK_HOBJECT_SET_PROTOTYPE_UPDREF(thr, obj, NULL);
+}
+
+DUK_INTERNAL duk_bool_t duk_is_bare_object(duk_hthread *thr, duk_idx_t idx) {
+	duk_hobject *obj;
+	duk_hobject *proto;
+
+	DUK_ASSERT_API_ENTRY(thr);
+
+	obj = duk_require_hobject(thr, idx);
+	DUK_ASSERT(obj != NULL);
+
+	proto = DUK_HOBJECT_GET_PROTOTYPE(thr->heap, obj);
+	return (proto == NULL);
 }
 
 /*
@@ -786,6 +993,10 @@ DUK_EXTERNAL void duk_set_prototype(duk_hthread *thr, duk_idx_t idx) {
 DUK_EXTERNAL void duk_get_finalizer(duk_hthread *thr, duk_idx_t idx) {
 	DUK_ASSERT_API_ENTRY(thr);
 
+	/* This get intentionally walks the inheritance chain at present,
+	 * which matches how the effective finalizer property is also
+	 * looked up in GC.
+	 */
 	duk_get_prop_stridx(thr, idx, DUK_STRIDX_INT_FINALIZER);
 }
 
@@ -797,6 +1008,12 @@ DUK_EXTERNAL void duk_set_finalizer(duk_hthread *thr, duk_idx_t idx) {
 
 	h = duk_require_hobject(thr, idx);  /* Get before 'put' so that 'idx' is correct. */
 	callable = duk_is_callable(thr, -1);
+
+	/* At present finalizer is stored as a hidden Symbol, with normal
+	 * inheritance and access control.  As a result, finalizer cannot
+	 * currently be set on a non-extensible (sealed or frozen) object.
+	 * It might be useful to allow it.
+	 */
 	duk_put_prop_stridx(thr, idx, DUK_STRIDX_INT_FINALIZER);
 
 	/* In addition to setting the finalizer property, keep a "have
@@ -821,11 +1038,13 @@ DUK_EXTERNAL void duk_get_finalizer(duk_hthread *thr, duk_idx_t idx) {
 	DUK_ASSERT_API_ENTRY(thr);
 	DUK_UNREF(idx);
 	DUK_ERROR_UNSUPPORTED(thr);
+	DUK_WO_NORETURN(return;);
 }
 
 DUK_EXTERNAL void duk_set_finalizer(duk_hthread *thr, duk_idx_t idx) {
 	DUK_ASSERT_API_ENTRY(thr);
 	DUK_UNREF(idx);
 	DUK_ERROR_UNSUPPORTED(thr);
+	DUK_WO_NORETURN(return;);
 }
 #endif  /* DUK_USE_FINALIZER_SUPPORT */

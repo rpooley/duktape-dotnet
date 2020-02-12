@@ -23,8 +23,9 @@ DUK_LOCAL duk_double_t duk__push_this_number_plain(duk_hthread *thr) {
 	    (DUK_HOBJECT_GET_CLASS_NUMBER(h) != DUK_HOBJECT_CLASS_NUMBER)) {
 		DUK_DDD(DUK_DDDPRINT("unacceptable this value: %!T", (duk_tval *) duk_get_tval(thr, -1)));
 		DUK_ERROR_TYPE(thr, "number expected");
+		DUK_WO_NORETURN(return 0.0;);
 	}
-	duk_get_prop_stridx_short(thr, -1, DUK_STRIDX_INT_VALUE);
+	duk_xget_owndataprop_stridx_short(thr, -1, DUK_STRIDX_INT_VALUE);
 	DUK_ASSERT(duk_is_number(thr, -1));
 	DUK_DDD(DUK_DDDPRINT("number object: %!T, internal value: %!T",
 	                     (duk_tval *) duk_get_tval(thr, -2), (duk_tval *) duk_get_tval(thr, -1)));
@@ -129,8 +130,11 @@ DUK_INTERNAL duk_ret_t duk_bi_number_prototype_to_fixed(duk_hthread *thr) {
 	duk_small_int_t c;
 	duk_small_uint_t n2s_flags;
 
-	frac_digits = (duk_small_int_t) duk_to_int_check_range(thr, 0, 0, 20);
+	/* In ES5.1 frac_digits is coerced first; in ES2015 the 'this number
+	 * value' check is done first.
+	 */
 	d = duk__push_this_number_plain(thr);
+	frac_digits = (duk_small_int_t) duk_to_int_check_range(thr, 0, 0, 20);
 
 	c = (duk_small_int_t) DUK_FPCLASSIFY(d);
 	if (c == DUK_FP_NAN || c == DUK_FP_INFINITE) {
@@ -236,5 +240,41 @@ DUK_INTERNAL duk_ret_t duk_bi_number_prototype_to_precision(duk_hthread *thr) {
 	duk_to_string(thr, -1);
 	return 1;
 }
+
+/*
+ *  ES2015 isFinite() etc
+ */
+
+#if defined(DUK_USE_ES6)
+DUK_INTERNAL duk_ret_t duk_bi_number_check_shared(duk_hthread *thr) {
+	duk_int_t magic;
+	duk_bool_t ret = 0;
+
+	if (duk_is_number(thr, 0)) {
+		duk_double_t d;
+
+		magic = duk_get_current_magic(thr);
+		d = duk_get_number(thr, 0);
+
+		switch (magic) {
+		case 0:  /* isFinite() */
+			ret = duk_double_is_finite(d);
+			break;
+		case 1:  /* isInteger() */
+			ret = duk_double_is_integer(d);
+			break;
+		case 2:  /* isNaN() */
+			ret = duk_double_is_nan(d);
+			break;
+		default:  /* isSafeInteger() */
+			DUK_ASSERT(magic == 3);
+			ret = duk_double_is_safe_integer(d);
+		}
+	}
+
+	duk_push_boolean(thr, ret);
+	return 1;
+}
+#endif  /* DUK_USE_ES6 */
 
 #endif  /* DUK_USE_NUMBER_BUILTIN */
